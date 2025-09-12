@@ -1,0 +1,71 @@
+const HeroSpriteFrames: any = {
+  ATK1: [
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_1.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_2.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_3.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_4.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_5.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_6.png"),
+  ],
+  ATK2: [
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_7.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_8.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_9.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_10.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_11.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_12.png"),
+  ],
+  ATK3: [
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_13.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_14.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_15.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_16.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_17.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_18.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_19.png"),
+    require("@/assets/animated-entitiy/heroes/attacks/HeroKnight_Attack_20.png"),
+  ],
+  Idle: [
+    require("@/assets/animated-entitiy/heroes/idles/HeroKnight_Idle_0.png"),
+    require("@/assets/animated-entitiy/heroes/idles/HeroKnight_Idle_1.png"),
+    require("@/assets/animated-entitiy/heroes/idles/HeroKnight_Idle_2.png"),
+    require("@/assets/animated-entitiy/heroes/idles/HeroKnight_Idle_3.png"),
+    require("@/assets/animated-entitiy/heroes/idles/HeroKnight_Idle_4.png"),
+    require("@/assets/animated-entitiy/heroes/idles/HeroKnight_Idle_5.png"),
+    require("@/assets/animated-entitiy/heroes/idles/HeroKnight_Idle_6.png"),
+    require("@/assets/animated-entitiy/heroes/idles/HeroKnight_Idle_7.png"),
+  ],
+  Death: [
+    require("@/assets/animated-entitiy/heroes/deaths/HeroKnight_Death_0.png"),
+    require("@/assets/animated-entitiy/heroes/deaths/HeroKnight_Death_1.png"),
+    require("@/assets/animated-entitiy/heroes/deaths/HeroKnight_Death_2.png"),
+    require("@/assets/animated-entitiy/heroes/deaths/HeroKnight_Death_3.png"),
+    require("@/assets/animated-entitiy/heroes/deaths/HeroKnight_Death_4.png"),
+    require("@/assets/animated-entitiy/heroes/deaths/HeroKnight_Death_5.png"),
+    require("@/assets/animated-entitiy/heroes/deaths/HeroKnight_Death_6.png"),
+    require("@/assets/animated-entitiy/heroes/deaths/HeroKnight_Death_7.png"),
+    require("@/assets/animated-entitiy/heroes/deaths/HeroKnight_Death_8.png"),
+    require("@/assets/animated-entitiy/heroes/deaths/HeroKnight_Death_9.png"),
+  ],
+  FJump: [
+    require("@/assets/animated-entitiy/heroes/full-jumps/HeroKnight_JF_1.png"),
+    require("@/assets/animated-entitiy/heroes/full-jumps/HeroKnight_JF_2.png"),
+    require("@/assets/animated-entitiy/heroes/full-jumps/HeroKnight_JF_3.png"),
+    require("@/assets/animated-entitiy/heroes/full-jumps/HeroKnight_JF_4.png"),
+    require("@/assets/animated-entitiy/heroes/full-jumps/HeroKnight_JF_5.png"),
+    require("@/assets/animated-entitiy/heroes/full-jumps/HeroKnight_JF_6.png"),
+    require("@/assets/animated-entitiy/heroes/full-jumps/HeroKnight_JF_7.png"),
+    require("@/assets/animated-entitiy/heroes/full-jumps/HeroKnight_JF_8.png"),
+  ],
+};
+
+export enum HeroSpriteStateEnum {
+  ATK1 = "ATK1",
+  ATK2 = "ATK2",
+  ATK3 = "ATK3",
+  FJump = "FJump",
+  Idle = "Idle",
+  Death = "Death",
+}
+
+export default HeroSpriteFrames;
