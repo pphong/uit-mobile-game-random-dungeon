@@ -1,21 +1,25 @@
 import Button from "@/components/Button";
 import Character from "@/components/Character";
 import dungeonBackground from "@/data-sources/dungeonBackground";
-import HeroFrames, { HeroStateEnum } from "@/data-sources/heroStateFrames";
-import { useEffect, useState } from "react";
+import EntityInventory, { EntityName, EntityNameEnum } from "@/data-sources/entityInventory";
+import { EntityStateEnum } from "@/data-sources/entityState";
+import { CalculateLv } from "@/utils/common.util";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
 
-export default function HomeScreen() {
-  // const [attackTrigger, setAttackTrigger] = useState(false);
+export default function BattleScreen() {
+  const { hero } = useLocalSearchParams();
 
-  // useEffect(() => {
-  //   setAttackTrigger(true);
-  // }, []);
+  const [lvWeigth, setLvWeigth] = useState<number>(
+    Math.floor(Math.random() * 100 * 1000)
+  );
 
-  const [heroState, setHeroState] = useState(HeroStateEnum.Idle);
-  const [enemyState, setEnemyState] = useState(HeroStateEnum.Idle);
+  const [dungeonLv, setDungeonLv] = useState<number>(CalculateLv(lvWeigth));
+  const [heroState, setHeroState] = useState(EntityStateEnum.Idle);
+  const [enemyState, setEnemyState] = useState(EntityStateEnum.Idle);
   const [heroMaxHP, setHeroMaxHP] = useState(100);
-  const [enemyMaxHP, setEnemyMaxHP] = useState(200);
+  const [enemyMaxHP, setEnemyMaxHP] = useState(dungeonLv);
   const [heroHP, setHeroHP] = useState(heroMaxHP);
   const [enemyHP, setEnemyHP] = useState(enemyMaxHP);
   const [heroHurtHP, setHeroHurtHP] = useState<any>(null);
@@ -24,16 +28,21 @@ export default function HomeScreen() {
   const [result, setResult] = useState<"win" | "lose" | null>(null);
   const [quote, setQuote] = useState(Math.floor(Math.random() * 3));
   const [dungeon, setDungeon] = useState(Math.floor(Math.random() * 4));
+  const [enemy, setEnemy] = useState(EntityNameEnum.hero);
 
   const triggerHero = (action: "ATK" | "HEAL") => {
-    let state = HeroStateEnum.Idle;
+    let state = EntityStateEnum.Idle;
     if (action === "ATK") {
-      const atk = [HeroStateEnum.ATK1, HeroStateEnum.ATK2, HeroStateEnum.ATK3];
+      const atk = [
+        EntityStateEnum.ATK1,
+        EntityStateEnum.ATK2,
+        EntityStateEnum.ATK3,
+      ];
       state = atk[Math.floor(Math.random() * atk.length)];
     }
 
     if (action === "HEAL") {
-      state = HeroStateEnum.Idle;
+      state = EntityStateEnum.Idle;
     }
 
     if (heroHP > 0) {
@@ -47,28 +56,28 @@ export default function HomeScreen() {
     if (state.includes("ATK") || action === "HEAL") {
       if (enemyHP + hurting < 0) {
         setEnemyHP(0);
-        setEnemyState(HeroStateEnum.Death);
+        setEnemyState(EntityStateEnum.Death);
       } else if (enemyHP + hurting < enemyMaxHP) {
         setEnemyHP((pre) => pre + hurting);
         setEnemyHurtHP(hurting);
         if (hurting < 0) {
-          setEnemyState(HeroStateEnum.Hurt);
+          setEnemyState(EntityStateEnum.Hurt);
         }
       } else {
         setEnemyHP(enemyMaxHP);
-        setEnemyState(HeroStateEnum.Idle);
+        setEnemyState(EntityStateEnum.Idle);
       }
     }
 
-    if (state !== HeroStateEnum.Idle && state !== HeroStateEnum.Death) {
+    if (state !== EntityStateEnum.Idle && state !== EntityStateEnum.Death) {
       setTimeout(() => {
-        setHeroState(HeroStateEnum.Idle);
+        setHeroState(EntityStateEnum.Idle);
       }, 500);
     }
 
-    if (enemyState !== HeroStateEnum.Death && enemyHP + hurting > 0) {
+    if (enemyState !== EntityStateEnum.Death && enemyHP + hurting > 0) {
       setTimeout(() => {
-        setEnemyState(HeroStateEnum.Idle);
+        setEnemyState(EntityStateEnum.Idle);
       }, 500);
     }
 
@@ -79,15 +88,46 @@ export default function HomeScreen() {
     }
   };
 
+  useEffect(() => {
+    const state = Object.values(EntityNameEnum);
+    setEnemy(EntityNameEnum[state[Math.floor(Math.random() * state.length)]])
+  },[])
+
+  const reset = () => {
+    const state = Object.values(EntityNameEnum);
+    setEnemy(EntityNameEnum[state[Math.floor(Math.random() * state.length)]])
+    setLvWeigth(Math.floor(Math.random() * 100 * 1000));
+    const lv = CalculateLv(lvWeigth);
+    setDungeonLv(lv);
+    setHeroState(EntityStateEnum.Idle);
+    setEnemyState(EntityStateEnum.Idle);
+    setHeroMaxHP(100);
+    setEnemyMaxHP(lv);
+    setHeroHP(heroMaxHP);
+    setEnemyHP(lv);
+    setTurn("user");
+    setResult(null);
+    setQuote(Math.floor(Math.random() * 3));
+    setDungeon(Math.floor(Math.random() * 3));
+  };
+
+  const home = () => {
+    router.push("/(games)/main");
+  };
+
   const triggerEnemy = (action: "ATK" | "HEAL") => {
-    let state = HeroStateEnum.Idle;
+    let state = EntityStateEnum.Idle;
     if (action === "ATK") {
-      const atk = [HeroStateEnum.ATK1, HeroStateEnum.ATK2, HeroStateEnum.ATK3];
+      const atk = [
+        EntityStateEnum.ATK1,
+        EntityStateEnum.ATK2,
+        EntityStateEnum.ATK3,
+      ];
       state = atk[Math.floor(Math.random() * atk.length)];
     }
 
     if (action === "HEAL") {
-      state = HeroStateEnum.Idle;
+      state = EntityStateEnum.Idle;
     }
 
     if (enemyHP > 0) {
@@ -95,34 +135,38 @@ export default function HomeScreen() {
     } else {
       return;
     }
+
+    const baseDmg = dungeonLv / 4;
+    const critical = Math.floor(Math.random() * 3) + 1;
     const hurting =
-      Number((Math.random() * 100).toFixed(2)) * (action === "HEAL" ? 1 : -1);
+      Number((Math.random() * baseDmg).toFixed(2)) *
+      (action === "HEAL" ? critical : -1 * critical);
 
     if (state.includes("ATK") || action === "HEAL") {
       if (heroHP + hurting < 0) {
         setHeroHP(0);
-        setHeroState(HeroStateEnum.Death);
+        setHeroState(EntityStateEnum.Death);
       } else if (heroHP + hurting < heroMaxHP) {
         setHeroHP((pre) => pre + hurting);
         setHeroHurtHP(hurting);
         if (hurting < 0) {
-          setHeroState(HeroStateEnum.Hurt);
+          setHeroState(EntityStateEnum.Hurt);
         }
       } else {
         setHeroHP(heroMaxHP);
-        setHeroState(HeroStateEnum.Idle);
+        setHeroState(EntityStateEnum.Idle);
       }
     }
 
-    if (state !== HeroStateEnum.Idle && state !== HeroStateEnum.Death) {
+    if (state !== EntityStateEnum.Idle && state !== EntityStateEnum.Death) {
       setTimeout(() => {
-        setEnemyState(HeroStateEnum.Idle);
+        setEnemyState(EntityStateEnum.Idle);
       }, 500);
     }
 
-    if (heroState !== HeroStateEnum.Death && heroHP + hurting > 0) {
+    if (heroState !== EntityStateEnum.Death && heroHP + hurting > 0) {
       setTimeout(() => {
-        setHeroState(HeroStateEnum.Idle);
+        setHeroState(EntityStateEnum.Idle);
       }, 500);
     }
 
@@ -176,6 +220,40 @@ export default function HomeScreen() {
     };
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      reset();
+    }, [])
+  );
+
+  const getDungeonLv = () => {
+    if (dungeonLv < 1000) {
+      return dungeonLv;
+    } else {
+      if (dungeonLv < 99999) {
+        return "D";
+      }
+      if (dungeonLv < 499999) {
+        return "C";
+      }
+      if (dungeonLv < 999999) {
+        return "B";
+      }
+      if (dungeonLv < 4999999) {
+        return "A";
+      }
+      if (dungeonLv < 10 * 19999999) {
+        return "S";
+      }
+      if (dungeonLv < 45 * 44999999) {
+        return "S+";
+      }
+      if (dungeonLv <= 50 * 50000000) {
+        return "SSS";
+      }
+    }
+  };
+
   return (
     <>
       <Image
@@ -188,30 +266,43 @@ export default function HomeScreen() {
         resizeMode="cover"
       ></Image>
       <div style={styles.landscape}>
+        <Text
+          style={[
+            styles.pixelText,
+            {
+              position: "absolute",
+              color: "#fff",
+              top: width > height ? height / 10 : height / 7,
+              left: width > height ? width / 2.7 : width / 5,
+            },
+          ]}
+        >
+          Dungeon {getDungeonLv()}
+        </Text>
         <>
           <Character
-            name={"Hero 1"}
+            name={EntityName[hero as keyof typeof EntityName]}
             isMain={true}
-            characterFrames={HeroFrames}
+            characterFrames={EntityInventory[hero as keyof typeof EntityName]}
             characterState={heroState}
             currentHP={heroHP}
             totalHP={heroMaxHP}
             missingHP={heroHurtHP}
             width={200}
             height={130}
-            nameColor={'#dfe6a8ff'}
+            nameColor={"#dfe6a8ff"}
           />
           <Character
-            name={"Hero 2"}
+            name={EntityName[enemy as keyof typeof EntityName]}
             isMain={false}
-            characterFrames={HeroFrames}
+            characterFrames={EntityInventory[enemy as keyof typeof EntityName]}
             characterState={enemyState}
             currentHP={enemyHP}
             totalHP={enemyMaxHP}
             missingHP={enemyHurtHP}
             width={200}
             height={130}
-            nameColor={'#d9692cff'}
+            nameColor={"#d9692cff"}
           />
 
           <View
@@ -247,42 +338,96 @@ export default function HomeScreen() {
             )}
 
             {result === "win" && (
-              <View>
-                {quote === 0 && (
-                  <Text style={[styles.pixelText, styles.winText]}>
-                    What a fierce battle!
-                  </Text>
-                )}
-                {quote === 1 && (
-                  <Text style={[styles.pixelText, styles.winText]}>
-                    Victory is mine!
-                  </Text>
-                )}
-                {quote === 2 && (
-                  <Text style={[styles.pixelText, styles.winText]}>
-                    We will never give up
-                  </Text>
-                )}
+              <View
+                style={[
+                  {
+                    flex: 1,
+                    flexDirection: "column",
+                    gap: 12,
+                    top: width > height ? height / 3 : height / 2,
+                  },
+                ]}
+              >
+                <View>
+                  {quote === 0 && (
+                    <Text style={[styles.pixelText, styles.winText]}>
+                      What a fierce battle!
+                    </Text>
+                  )}
+                  {quote === 1 && (
+                    <Text style={[styles.pixelText, styles.winText]}>
+                      Victory is mine!
+                    </Text>
+                  )}
+                  {quote === 2 && (
+                    <Text style={[styles.pixelText, styles.winText]}>
+                      We will never give up
+                    </Text>
+                  )}
+                </View>
+                <View style={[{ flex: 1, flexDirection: "column", gap: 12 }]}>
+                  <Button
+                    customStyle={[{ minHeight: 30 }]}
+                    label="It's a long day, need some rest!"
+                    onPress={home}
+                    backgroundColor={"#56ae94ff"}
+                  ></Button>
+                  <Button
+                    customStyle={[{ minHeight: 30 }]}
+                    label="Bring me another one!"
+                    onPress={reset}
+                    backgroundColor={"#008131ff"}
+                  ></Button>
+                </View>
+                <Text style={[styles.pixelText, { fontSize: 15 }]}>
+                  (Your items have been sent to inventory, please check them
+                  when you return.)
+                </Text>
               </View>
             )}
 
             {result === "lose" && (
-              <View>
-                {quote === 0 && (
-                  <Text style={[styles.pixelText, styles.lostText]}>
-                    It is a disgrace
-                  </Text>
-                )}
-                {quote === 1 && (
-                  <Text style={[styles.pixelText, styles.lostText]}>
-                    I will revenge!
-                  </Text>
-                )}
-                {quote === 2 && (
-                  <Text style={[styles.pixelText, styles.lostText]}>
-                    Lost? I will never accept this!
-                  </Text>
-                )}
+              <View
+                style={[
+                  {
+                    flex: 1,
+                    flexDirection: "column",
+                    gap: 12,
+                    top: width > height ? height / 3 : height / 2,
+                  },
+                ]}
+              >
+                <View>
+                  {quote === 0 && (
+                    <Text style={[styles.pixelText, styles.lostText]}>
+                      It is a disgrace
+                    </Text>
+                  )}
+                  {quote === 1 && (
+                    <Text style={[styles.pixelText, styles.lostText]}>
+                      I will revenge!
+                    </Text>
+                  )}
+                  {quote === 2 && (
+                    <Text style={[styles.pixelText, styles.lostText]}>
+                      Lost? I will never accept this!
+                    </Text>
+                  )}
+                </View>
+                <View style={[{ flex: 1, flexDirection: "column", gap: 12 }]}>
+                  <Button
+                    customStyle={[{ minHeight: 30 }]}
+                    label="I forgot my equiments! Let's get some!"
+                    onPress={home}
+                    backgroundColor={"#56ae94ff"}
+                  ></Button>
+                  <Button
+                    customStyle={[{ minHeight: 30 }]}
+                    label="It's not me, just the illution, let's try another one!"
+                    onPress={reset}
+                    backgroundColor={"#ff7070ff"}
+                  ></Button>
+                </View>
               </View>
             )}
           </View>
@@ -371,7 +516,7 @@ const styles = StyleSheet.create({
   backgroundImage: {
     position: "absolute",
     width: 932,
-    bottom: 0
+    bottom: 0,
   },
   backgroundPortrailImage: {
     position: "absolute",

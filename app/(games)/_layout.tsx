@@ -32,12 +32,23 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
+        name="main"
+        options={{
+          title: "Main",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="s.square.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="battle"
         options={{
           title: "Battle",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="s.square.fill" color={color} />
           ),
+          tabBarStyle: { display: 'none' },
+          href: null,
         }}
       />
       <Tabs.Screen
@@ -46,6 +57,15 @@ export default function TabLayout() {
           title: "Leaderboard",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="s.square.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="credit"
+        options={{
+          title: "Credits",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="0.square.ar" color={color} />
           ),
         }}
       />

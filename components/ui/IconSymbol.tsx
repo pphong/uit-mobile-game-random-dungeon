@@ -27,6 +27,7 @@ const MAPPING = {
 const MAPPING_ANT = {
   'left.circle': 'caretleft',
   'right.circle': 'caretright',
+  '0.square.ar': 'copyright'
 } as IconMappingAnt;
 
 const MAPPING_MC = {

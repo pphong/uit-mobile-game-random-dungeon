@@ -10,7 +10,7 @@ export default function LoginScreen() {
   const backgroundPortrailImage = require("@/assets/background/banner-game-3.png");
 
   const login = () => {
-    router.push('/(games)/battle');
+    router.push('/(games)/main');
   };
 
   return (
@@ -50,7 +50,7 @@ export default function LoginScreen() {
           <Text style={[styles.pixelText, { color: "#555555ff" }]}>
             Copyright © 2025 - Pham-Brotherhood
           </Text>
-          <Text style={[styles.pixelText, { color: "#555555ff" }]}>v1.0.0</Text>
+          <Text style={[styles.pixelText, { color: "#555555ff" }]}>v1.2.0</Text>
         </View>
       </View>
     </>

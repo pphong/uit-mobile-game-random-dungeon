@@ -1,13 +1,13 @@
 import Color from "color";
 import { useRef } from "react";
-import { Animated, StyleSheet, TouchableOpacity } from "react-native";
+import { Animated, StyleProp, StyleSheet, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
 import { Text } from "react-native-gesture-handler";
 
 type ButtonProps = {
   label?: string;
   children?: React.ReactNode;
-  customStyle?: object;
-  buttonTextStyle?: object;
+  customStyle?: StyleProp<ViewStyle> | undefined;
+  buttonTextStyle?: StyleProp<TextStyle>;
   onPress?: () => void;
   disabled?: boolean;
   backgroundColor?: string;

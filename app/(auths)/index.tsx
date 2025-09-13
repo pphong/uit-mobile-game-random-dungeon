@@ -37,7 +37,7 @@ export default function HomeScreen() {
           <Text style={[styles.pixelText, { color: "#555555ff" }]}>
             Copyright © 2025 - Pham-Brotherhood
           </Text>
-          <Text style={[styles.pixelText, { color: "#555555ff" }]}>v1.0.0</Text>
+          <Text style={[styles.pixelText, { color: "#555555ff" }]}>v1.2.0</Text>
         </View>
       </View>
     </>

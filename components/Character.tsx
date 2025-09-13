@@ -10,8 +10,8 @@ type CharacterProps = {
   children?: React.ReactNode;
   characterState?: any;
   characterFrames: any;
-  currentHP: number;
-  totalHP: number;
+  currentHP?: number;
+  totalHP?: number;
   missingHP?: number;
   width?: number;
   height?: number;
@@ -92,7 +92,7 @@ const Character: React.FC<CharacterProps> = ({
         ]}
       >
         <Text style={[styles.pixelText, { marginBottom: 10, color: nameColor ? nameColor : '#000' }]}>{name}</Text>
-        <HudBar name={"HP"} current={currentHP} total={totalHP}></HudBar>
+        {currentHP && totalHP && <HudBar name={"HP"} current={currentHP} total={totalHP}></HudBar>}
         <Animated.Image
           source={characterFrames[characterState]} // GIF trong thư mục assets
           style={[
