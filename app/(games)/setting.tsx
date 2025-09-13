@@ -1,35 +1,17 @@
 import Button from "@/components/Button";
 import Input from "@/components/Input";
-import axios from "axios";
 import { router } from "expo-router";
-import { useState } from "react";
 import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
 
 const { width, height } = Dimensions.get("window");
-const BASE_URL = "http://localhost:8080/api/v1";
 
 export default function LoginScreen() {
   const backgroundImage = require("@/assets/background/banner-game-3.png");
   const backgroundPortrailImage = require("@/assets/background/banner-game-3.png");
 
-  const [email, setEmail] = useState("");
-  const [pwd, setPwd] = useState("");
-
-  const login = async () => {
-    try {
-      const res = await axios.post(BASE_URL + "/users/signin", {
-        email: email,
-        password: pwd,
-      });
-      const userData = res.data;
-      localStorage.setItem("userData", JSON.stringify(userData));
-      const { token } = res.data;
-      localStorage.setItem("accessToken", token);
-    } catch (error) {
-      console.error(error);
-    }
-    router.push("/(games)/main");
-  }; 
+  const setName = () => {
+    router.push('/(games)/main');
+  };
 
   return (
     <>
@@ -47,26 +29,16 @@ export default function LoginScreen() {
         <View style={[styles.form]}>
           <Input
             customStyle={styles.inputCustom}
-            inputAccessoryViewID="email"
-            placeHolder="E-mail"
-            value={email}
-            setText={setEmail}
-          ></Input>
-          <Input
-            customStyle={styles.inputCustom}
-            secureTextEntry={true}
-            inputAccessoryViewID="pwd"
-            placeHolder="Password"
-            value={pwd}
-            setText={setPwd}
+            inputAccessoryViewID="name"
+            placeHolder="Name"
           ></Input>
           <Button
             customStyle={[
               width > height ? styles.startBtn : styles.startBtnPortrail,
             ]}
-            buttonTextStyle={[{ fontSize: 25, color: "#7e0000ff" }]}
-            label="Go go go!"
-            onPress={login}
+            buttonTextStyle={[{ fontSize: 20, color: "#7e0000ff" }]}
+            label="This is my name for now!"
+            onPress={setName}
           ></Button>
         </View>
         <View style={[styles.footer]}>
@@ -110,7 +82,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 0.7,
   },
   startBtn: {
-    width: 300,
+    width: 400,
     minHeight: 50,
     backgroundColor: "#ffc831ff",
   },

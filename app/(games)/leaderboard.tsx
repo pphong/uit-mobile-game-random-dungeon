@@ -10,19 +10,25 @@ import {
   View,
 } from "react-native";
 
+const BASE_URL = "http://localhost:8080/api/v1";
+
 export default function LeaderboardScreen() {
   const backgroundImage = require("@/assets/background/banner-game-4.jpg");
   const backgroundPortrailImage = require("@/assets/background/banner-game-3.png");
   const [data, setData] = useState([]);
-  const getData = async () => {
+
+  const getLeaders = async () => {
+    const token = localStorage.getItem("accessToken");
     try {
-      setData(
-        (
-          await axios.get(
-            "https://6874ee13dd06792b9c95e743.mockapi.io/api/v1/leaderboard"
-          )
-        )?.data
-      );
+      const res = await axios.get(BASE_URL + "/scores/rank", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: {
+          limit: 100
+        }
+      });
+      setData(res.data);
     } catch (error) {
       console.error(error);
     }
@@ -48,15 +54,15 @@ export default function LeaderboardScreen() {
               style={[styles.rankImg]}
             />
           </View>
-          <Text style={[styles.pixelText, { flex: 1 }]}>{item.name}</Text>
-          <Text style={[styles.pixelText, { flex: 1 }]}>{item.score}</Text>
+          <Text style={[styles.pixelText, { flex: 1 }]}>{item.user?.name ?? '_'}</Text>
+          <Text style={[styles.pixelText, { flex: 1 }]}>{item.point}</Text>
         </View>
       </>
     );
   };
 
   useEffect(() => {
-    getData();
+    getLeaders();
   }, []);
 
   return (
@@ -152,6 +158,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     boxShadow: "#2e2816ff 3px 6px 2px",
     alignItems: "center",
+    minWidth: width > height ? 320 : 200
   },
   rankImg: {
     width: 50,

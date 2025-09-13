@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { StyleSheet, TextInput } from "react-native";
 
 type InputProps = {
@@ -7,25 +6,33 @@ type InputProps = {
   secureTextEntry?: boolean;
   textContentType?: string;
   value?: string;
+  setText?: (text: string) => void;
   customStyle?: object;
+  canEdit?: boolean;
 };
 const Input: React.FC<InputProps> = ({
   inputAccessoryViewID,
   placeHolder,
   secureTextEntry,
   value,
+  setText,
   customStyle,
+  canEdit,
 }) => {
-  const [text, setText] = useState(value);
+
   return (
     <TextInput
-      style={[styles.textInput, customStyle]}
+      style={[
+        styles.textInput,
+        customStyle,
+        !canEdit && { backgroundColor: "#dbdbdb" },
+      ]}
       inputAccessoryViewID={inputAccessoryViewID}
       onChangeText={setText}
-      value={text}
+      value={value ?? ""}
       placeholder={placeHolder}
-      placeholderTextColor={"#9e9e9eff"}
       secureTextEntry={secureTextEntry}
+      editable={canEdit}
     />
   );
 };
