@@ -1,8 +1,9 @@
 import Button from "@/components/Button";
 import Character from "@/components/Character";
+import dungeonBackground from "@/data-sources/dungeonBackground";
 import HeroFrames, { HeroStateEnum } from "@/data-sources/heroStateFrames";
 import { useEffect, useState } from "react";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
   // const [attackTrigger, setAttackTrigger] = useState(false);
@@ -22,6 +23,7 @@ export default function HomeScreen() {
   const [turn, setTurn] = useState<"user" | "bot">("user");
   const [result, setResult] = useState<"win" | "lose" | null>(null);
   const [quote, setQuote] = useState(Math.floor(Math.random() * 3));
+  const [dungeon, setDungeon] = useState(Math.floor(Math.random() * 4));
 
   const triggerHero = (action: "ATK" | "HEAL") => {
     let state = HeroStateEnum.Idle;
@@ -176,6 +178,15 @@ export default function HomeScreen() {
 
   return (
     <>
+      <Image
+        style={[
+          width > height
+            ? styles.backgroundImage
+            : styles.backgroundPortrailImage,
+        ]}
+        source={dungeonBackground[dungeon]}
+        resizeMode="cover"
+      ></Image>
       <div style={styles.landscape}>
         <>
           <Character
@@ -188,6 +199,7 @@ export default function HomeScreen() {
             missingHP={heroHurtHP}
             width={200}
             height={130}
+            nameColor={'#dfe6a8ff'}
           />
           <Character
             name={"Hero 2"}
@@ -199,6 +211,7 @@ export default function HomeScreen() {
             missingHP={enemyHurtHP}
             width={200}
             height={130}
+            nameColor={'#d9692cff'}
           />
 
           <View
@@ -354,5 +367,15 @@ const styles = StyleSheet.create({
     height: width > height ? 430 : 932,
     alignItems: "center",
     justifyContent: "center",
+  },
+  backgroundImage: {
+    position: "absolute",
+    width: 932,
+    bottom: 0
+  },
+  backgroundPortrailImage: {
+    position: "absolute",
+    height: 932,
+    width: 430,
   },
 });

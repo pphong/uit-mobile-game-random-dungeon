@@ -15,6 +15,7 @@ type CharacterProps = {
   missingHP?: number;
   width?: number;
   height?: number;
+  nameColor?: string;
 };
 
 const Character: React.FC<CharacterProps> = ({
@@ -27,7 +28,8 @@ const Character: React.FC<CharacterProps> = ({
   totalHP,
   missingHP,
   width,
-  height
+  height,
+  nameColor
 }) => {
   const [fontsLoaded] = useFonts({
     PressStart2P: require("@/assets/fonts/PressStart2P-Regular.ttf"),
@@ -37,8 +39,6 @@ const Character: React.FC<CharacterProps> = ({
   const scaleX = useRef(new Animated.Value(isMain ? 1 : -1)).current;
 
   const attack = () => {
-    console.log("atk");
-
     Animated.sequence([
       Animated.timing(positionX, {
         toValue: 250 * (isMain ? 1 : -1),
@@ -91,7 +91,7 @@ const Character: React.FC<CharacterProps> = ({
           },
         ]}
       >
-        <Text style={[styles.pixelText, { marginBottom: 10 }]}>{name}</Text>
+        <Text style={[styles.pixelText, { marginBottom: 10, color: nameColor ? nameColor : '#000' }]}>{name}</Text>
         <HudBar name={"HP"} current={currentHP} total={totalHP}></HudBar>
         <Animated.Image
           source={characterFrames[characterState]} // GIF trong thư mục assets

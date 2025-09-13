@@ -11,6 +11,8 @@ import {
 } from "react-native";
 
 export default function LeaderboardScreen() {
+  const backgroundImage = require("@/assets/background/banner-game-4.jpg");
+  const backgroundPortrailImage = require("@/assets/background/banner-game-3.png");
   const [data, setData] = useState([]);
   const getData = async () => {
     try {
@@ -46,16 +48,8 @@ export default function LeaderboardScreen() {
               style={[styles.rankImg]}
             />
           </View>
-          <Text
-            style={[styles.pixelText, { flex: 1 }]}
-          >
-            {item.name}
-          </Text>
-          <Text
-            style={[styles.pixelText, { flex: 1 }]}
-          >
-            {item.score}
-          </Text>
+          <Text style={[styles.pixelText, { flex: 1 }]}>{item.name}</Text>
+          <Text style={[styles.pixelText, { flex: 1 }]}>{item.score}</Text>
         </View>
       </>
     );
@@ -67,13 +61,27 @@ export default function LeaderboardScreen() {
 
   return (
     <>
+      <Image
+        style={[
+          width > height
+            ? styles.backgroundImage
+            : styles.backgroundPortrailImage,
+        ]}
+        source={width > height ? backgroundImage : backgroundPortrailImage}
+        resizeMode="cover"
+      ></Image>
       <View style={styles.container}>
         <View style={{ alignItems: "center", marginBottom: 15 }}>
           <Text style={[styles.pixelText, styles.title, { marginBottom: 15 }]}>
             LeaderBoard
           </Text>
           <View>
-            <View style={[styles.rankItem, { marginBottom: 15, backgroundColor: "#c4c4c4ff" }]}>
+            <View
+              style={[
+                styles.rankItem,
+                { marginBottom: 15, backgroundColor: "#c4c4c4ff" },
+              ]}
+            >
               <Text style={[{ flex: 1 }]}> </Text>
               <Text
                 style={[
@@ -115,7 +123,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     flexDirection: "row",
-    backgroundColor: "#555",
+    // backgroundColor: "#555",
   },
   board: {},
   pixelText: {
@@ -143,7 +151,7 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: 10,
     boxShadow: "#2e2816ff 3px 6px 2px",
-    alignItems: 'center'
+    alignItems: "center",
   },
   rankImg: {
     width: 50,
@@ -155,5 +163,15 @@ const styles = StyleSheet.create({
     maxWidth: width > height ? 600 : 400,
     paddingLeft: 5,
     paddingRight: 5,
+  },
+  backgroundImage: {
+    position: "absolute",
+    width: 932,
+    bottom: 0,
+  },
+  backgroundPortrailImage: {
+    position: "absolute",
+    height: 932,
+    width: 430,
   },
 });
