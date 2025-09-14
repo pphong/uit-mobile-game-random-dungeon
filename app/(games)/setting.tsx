@@ -3,6 +3,8 @@ import Input from "@/components/Input";
 import { router } from "expo-router";
 import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
 
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
+
 const { width, height } = Dimensions.get("window");
 
 export default function LoginScreen() {

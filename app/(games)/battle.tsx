@@ -6,13 +6,14 @@ import EntityInventory, {
   EntityNameEnum,
 } from "@/data-sources/entityInventory";
 import { EntityStateEnum } from "@/data-sources/entityState";
-import { CalculateLv } from "@/utils/common.util";
+import { CalculateItemProp, CalculateLv } from "@/utils/common.util";
 import axios from "axios";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
 
-const BASE_URL = "http://localhost:8080/api/v1";
+const BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
 
 export default function BattleScreen() {
   const { hero } = useLocalSearchParams();
@@ -22,10 +23,19 @@ export default function BattleScreen() {
   );
 
   const [dungeonLv, setDungeonLv] = useState<number>(CalculateLv(lvWeigth));
+  const [equipment, setEquipment] = useState<any>(null);
+  const [equipmentPower, setEquipmentPower] = useState<{
+    atk: number;
+    def: number;
+    hp: number;
+    luck: number;
+  }>({ atk: 0, def: 0, hp: 0, luck: 0 });
   const [heroState, setHeroState] = useState(EntityStateEnum.Idle);
   const [enemyState, setEnemyState] = useState(EntityStateEnum.Idle);
   const [heroPower, setHeroPower] = useState(0);
-  const [heroMaxHP, setHeroMaxHP] = useState(100 + heroPower);
+  const [heroMaxHP, setHeroMaxHP] = useState(
+    100 + heroPower + equipmentPower.hp
+  );
   const [enemyMaxHP, setEnemyMaxHP] = useState(dungeonLv);
   const [heroHP, setHeroHP] = useState(heroMaxHP);
   const [enemyHP, setEnemyHP] = useState(enemyMaxHP);
@@ -41,7 +51,22 @@ export default function BattleScreen() {
     const state = Object.values(EntityNameEnum);
     setEnemy(EntityNameEnum[state[Math.floor(Math.random() * state.length)]]);
     getHeroPower();
+    getEquipment();
   }, []);
+
+  useEffect(() => {
+    setEquipmentPower({
+      atk: CalculateItemProp(equipment, "atk"),
+      def: CalculateItemProp(equipment, "def"),
+      hp: CalculateItemProp(equipment, "hp"),
+      luck: CalculateItemProp(equipment, "luck"),
+    });
+  }, [equipment]);
+
+  useEffect(() => {
+    setHeroMaxHP(100 + heroPower + equipmentPower.hp);
+    setHeroHP(heroMaxHP);
+  }, [equipmentPower]);
 
   const getHeroPower = async () => {
     const token = localStorage.getItem("accessToken");
@@ -60,20 +85,18 @@ export default function BattleScreen() {
 
   const onVictory = async () => {
     const token = localStorage.getItem("accessToken");
-    const diffScore = Math.floor(10 - ((((heroMaxHP + heroPower) * 100)/ enemyMaxHP) / 10));
+    const diffScore = Math.floor(
+      10 - ((heroMaxHP + heroPower) * 100) / enemyMaxHP / 10
+    );
     try {
-      const res = await axios.post(
-        BASE_URL + "/inventory/victory",
-        null,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          params: {
-            master: diffScore,
-          },
-        }
-      );
+      const res = await axios.post(BASE_URL + "/inventory/victory", null, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: {
+          master: diffScore,
+        },
+      });
       const { point } = res.data;
       setHeroPower(point ?? 0);
     } catch (error) {
@@ -83,6 +106,7 @@ export default function BattleScreen() {
 
   const reset = () => {
     getHeroPower();
+    getEquipment();
     const state = Object.values(EntityNameEnum);
     setEnemy(EntityNameEnum[state[Math.floor(Math.random() * state.length)]]);
     setLvWeigth(Math.floor(Math.random() * 100 * 1000));
@@ -90,7 +114,7 @@ export default function BattleScreen() {
     setDungeonLv(lv);
     setHeroState(EntityStateEnum.Idle);
     setEnemyState(EntityStateEnum.Idle);
-    setHeroMaxHP(100 + heroPower);
+    setHeroMaxHP(100 + heroPower + equipmentPower.hp);
     setEnemyMaxHP(lv);
     setHeroHP(heroMaxHP);
     setEnemyHP(lv);
@@ -104,67 +128,21 @@ export default function BattleScreen() {
     router.push("/(games)/main");
   };
 
-  const triggerHero = (action: "ATK" | "HEAL") => {
-    let state = EntityStateEnum.Idle;
-    if (action === "ATK") {
-      const atk = [
-        EntityStateEnum.ATK1,
-        EntityStateEnum.ATK2,
-        EntityStateEnum.ATK3,
-      ];
-      state = atk[Math.floor(Math.random() * atk.length)];
-    }
-
-    if (action === "HEAL") {
-      state = EntityStateEnum.Idle;
-    }
-
-    if (heroHP > 0) {
-      setHeroState(state);
-    } else {
-      return;
-    }
-    const hurting =
-      Number((Math.random() * (100 + heroPower)).toFixed(2)) *
-      (action === "HEAL" ? 1 : -1);
-    console.log({ heroPower });
-
-    if (state.includes("ATK") || action === "HEAL") {
-      if (enemyHP + hurting < 0) {
-        setEnemyHP(0);
-        setEnemyState(EntityStateEnum.Death);
-      } else if (enemyHP + hurting < enemyMaxHP) {
-        setEnemyHP((pre) => pre + hurting);
-        setEnemyHurtHP(hurting);
-        if (hurting < 0) {
-          setEnemyState(EntityStateEnum.Hurt);
-        }
-      } else {
-        setEnemyHP(enemyMaxHP);
-        setEnemyState(EntityStateEnum.Idle);
-      }
-    }
-
-    if (state !== EntityStateEnum.Idle && state !== EntityStateEnum.Death) {
-      setTimeout(() => {
-        setHeroState(EntityStateEnum.Idle);
-      }, 500);
-    }
-
-    if (enemyState !== EntityStateEnum.Death && enemyHP + hurting > 0) {
-      setTimeout(() => {
-        setEnemyState(EntityStateEnum.Idle);
-      }, 500);
-    }
-
-    if (action === "ATK") {
-      setTurn("bot");
-    } else {
-      setTurn("user");
+  const getEquipment = async () => {
+    const token = localStorage.getItem("accessToken");
+    try {
+      const res = await axios.get(BASE_URL + "/equipment", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setEquipment(res.data);
+    } catch (error) {
+      console.error(error);
     }
   };
 
-  const triggerEnemy = (action: "ATK" | "HEAL") => {
+  const onHeroAction = (action: "ATK" | "HEAL") => {
     let state = EntityStateEnum.Idle;
     if (action === "ATK") {
       const atk = [
@@ -173,58 +151,108 @@ export default function BattleScreen() {
         EntityStateEnum.ATK3,
       ];
       state = atk[Math.floor(Math.random() * atk.length)];
-    }
+      setHeroState(state);
 
-    if (action === "HEAL") {
-      state = EntityStateEnum.Idle;
-    }
+      let hurting =
+        Number((Math.random() * (100 + heroPower)).toFixed(2)) +
+        equipmentPower.atk;
+      if (hurting < 0) {
+        hurting = 0;
+      }
 
-    if (enemyHP > 0) {
-      setEnemyState(state);
-    } else {
-      return;
-    }
-
-    const baseDmg = dungeonLv / 4;
-    const critical = Math.floor(Math.random() * 3) + 1;
-    const hurting =
-      Number((Math.random() * baseDmg).toFixed(2)) *
-      (action === "HEAL" ? 1 : -1) *
-      critical;
-
-    if (state.includes("ATK") || action === "HEAL") {
-      if (heroHP + hurting < 0) {
-        setHeroHP(0);
-        setHeroState(EntityStateEnum.Death);
-      } else if (heroHP + hurting < heroMaxHP) {
-        setHeroHP((pre) => pre + hurting);
-        setHeroHurtHP(hurting);
-        if (hurting < 0) {
-          setHeroState(EntityStateEnum.Hurt);
-        }
+      if (enemyHP - hurting < 0) {
+        setEnemyHP(0);
+        setEnemyState(EntityStateEnum.Death);
       } else {
-        setHeroHP(heroMaxHP);
-        setHeroState(EntityStateEnum.Idle);
+        setEnemyHP((pre) => pre - hurting);
+        setEnemyHurtHP(hurting > 0 ? hurting * -1 : "-0");
+        setEnemyState(EntityStateEnum.Hurt);
+      }
+
+      if (enemyState !== EntityStateEnum.Death && enemyHP + hurting > 0) {
+        setTimeout(() => {
+          setEnemyState(EntityStateEnum.Idle);
+        }, 500);
+      }
+
+      if (state !== EntityStateEnum.Death && state !== EntityStateEnum.Idle) {
+        setTimeout(() => {
+          setHeroState(EntityStateEnum.Idle);
+        }, 500);
       }
     }
 
-    if (state !== EntityStateEnum.Idle && state !== EntityStateEnum.Death) {
-      setTimeout(() => {
-        setEnemyState(EntityStateEnum.Idle);
-      }, 500);
+    if (action === "HEAL") {
+      if (heroHP < 0) {
+        return;
+      }
+
+      const healing = Number((Math.random() * (100 + heroPower)).toFixed(2));
+      setHeroHurtHP(healing);
+      if (heroHP + healing < heroMaxHP) {
+        setHeroHP((pre) => pre + healing);
+      } else {
+        setHeroHP(heroMaxHP);
+      }
     }
 
-    if (heroState !== EntityStateEnum.Death && heroHP + hurting > 0) {
-      setTimeout(() => {
-        setHeroState(EntityStateEnum.Idle);
-      }, 500);
-    }
+    setTurn("bot");
+  };
 
+  const onEnemyAction = (action: "ATK" | "HEAL") => {
+    const baseDmg = dungeonLv / 4;
+    const critical = Math.floor(Math.random() * 3) + 1;
+    let state = EntityStateEnum.Idle;
     if (action === "ATK") {
-      setTurn("user");
-    } else {
-      setTurn("bot");
+      const atk = [
+        EntityStateEnum.ATK1,
+        EntityStateEnum.ATK2,
+        EntityStateEnum.ATK3,
+      ];
+      state = atk[Math.floor(Math.random() * atk.length)];
+      setEnemyState(state);
+
+      const hurting =
+        Number((Math.random() * baseDmg).toFixed(2)) * critical -
+        equipmentPower.def;
+
+      if (heroHP - hurting < 0) {
+        setHeroHP(0);
+        setHeroState(EntityStateEnum.Death);
+      } else {
+        setHeroHP((pre) => pre - hurting);
+        setHeroHurtHP(hurting * -1);
+        setHeroState(EntityStateEnum.Hurt);
+      }
+
+      if (heroState !== EntityStateEnum.Death && heroHP + hurting > 0) {
+        setTimeout(() => {
+          setHeroState(EntityStateEnum.Idle);
+        }, 500);
+      }
+
+      if (state !== EntityStateEnum.Death && state !== EntityStateEnum.Idle) {
+        setTimeout(() => {
+          setEnemyState(EntityStateEnum.Idle);
+        }, 500);
+      }
     }
+
+    if (action === "HEAL") {
+      if (enemyHP < 0) {
+        return;
+      }
+
+      const healing = Number((Math.random() * baseDmg).toFixed(2)) * critical;
+      setEnemyHurtHP(healing);
+      if (enemyHP + healing < enemyMaxHP) {
+        setEnemyHP((pre) => pre + healing);
+      } else {
+        setEnemyHP(enemyMaxHP);
+      }
+    }
+
+    setTurn("user");
   };
 
   useEffect(() => {
@@ -233,11 +261,11 @@ export default function BattleScreen() {
         const act = ["ATK", "HEAL"];
         const a = act[Math.floor(Math.random() * act.length)] as "ATK" | "HEAL";
         if (a === "ATK") {
-          triggerEnemy(a);
+          onEnemyAction(a);
         } else {
-          triggerHero(a);
+          onEnemyAction(a);
         }
-      }, 600);
+      }, 1500);
       return () => clearTimeout(timer);
     }
   }, [turn]);
@@ -370,7 +398,7 @@ export default function BattleScreen() {
                 <Button
                   customStyle={[styles.randomButtonsLeft]}
                   label="Random Attack"
-                  onPress={() => triggerHero("ATK")}
+                  onPress={() => onHeroAction("ATK")}
                   disabled={turn === "bot"}
                   backgroundColor={
                     turn === "user" && heroHP !== 0 ? "#e34646ff" : "#747474ff"
@@ -379,7 +407,7 @@ export default function BattleScreen() {
                 <Button
                   customStyle={[styles.randomButtonsRight]}
                   label="Random Heal"
-                  onPress={() => triggerEnemy("HEAL")}
+                  onPress={() => onHeroAction("HEAL")}
                   disabled={turn === "bot" || heroHP === 0}
                   backgroundColor={
                     turn === "user" && heroHP !== 0 ? "#149f2dff" : "#747474ff"
@@ -482,13 +510,55 @@ export default function BattleScreen() {
               </View>
             )}
           </View>
+
+          {result == null && (
+            <View style={[styles.turnBar]}>
+              <View
+                style={[
+                  {
+                    backgroundColor: "#1da102ff",
+                    boxShadow: "#0d4b00ff 0px 6px 3px",
+                    borderWidth: 2,
+                    borderColor: "#387e2aff",
+                    padding: 5,
+                    borderRadius: 5,
+                    opacity: turn === "user" ? 0.6 : 0,
+                  },
+                ]}
+              >
+                <Text
+                  style={[styles.pixelText, { fontSize: 8, color: "#fff" }]}
+                >
+                  Your turn
+                </Text>
+              </View>
+              <View
+                style={[
+                  {
+                    backgroundColor: "#a10202ff",
+                    boxShadow: "#4b0000ff 0px 6px 3px",
+                    borderWidth: 2,
+                    borderColor: "#7e2a2aff",
+                    padding: 5,
+                    borderRadius: 5,
+                    opacity: turn === "bot" ? 0.6 : 0,
+                  },
+                ]}
+              >
+                <Text
+                  style={[styles.pixelText, { fontSize: 8, color: "#fff" }]}
+                >
+                  Enemy turn
+                </Text>
+              </View>
+            </View>
+          )}
         </>
       </div>
     </>
   );
 }
 const { width, height } = Dimensions.get("window");
-const inbound = width - 32;
 
 const styles = StyleSheet.create({
   portrait: {
@@ -573,5 +643,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     height: 932,
     width: 430,
+  },
+  turnBar: {
+    position: "absolute",
+    bottom: 50,
+    width: width - 100,
+    justifyContent: "space-between",
+    flex: 1,
+    flexDirection: "row",
   },
 });

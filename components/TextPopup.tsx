@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, Text } from "react-native";
 
 interface TextPopupProp {
-  value: number;
+  value: number | "-0" | "+0";
   color: string;
   onFinish?: () => void;
 }
@@ -14,16 +14,16 @@ const TextPopup: React.FC<TextPopupProp> = ({ value, color, onFinish }) => {
   const [valueText, setValueText] = useState<any>(null);
 
   useEffect(() => {
-    setValueText(value);
+    setValueText(typeof value == "number" ? value.toFixed(3) : value);
     Animated.parallel([
       Animated.timing(opacity, {
         toValue: 0,
-        duration: 300,
+        duration: 800,
         useNativeDriver: true,
       }),
       Animated.timing(translateY, {
         toValue: -40,
-        duration: 300,
+        duration: 800,
         useNativeDriver: true,
       }),
     ]).start(() => reset());
@@ -58,7 +58,7 @@ const TextPopup: React.FC<TextPopupProp> = ({ value, color, onFinish }) => {
     >
       {valueText && (
         <Text style={[{ flex: 1 }]}>
-          {valueText > 0 ? "+" : ""}
+          {valueText < 0 || valueText === "-0" || valueText === "+0" ? "" : "+"}
           {valueText}
         </Text>
       )}

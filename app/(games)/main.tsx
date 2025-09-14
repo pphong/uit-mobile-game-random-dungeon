@@ -11,6 +11,7 @@ import {
   InventoryAssets,
   InventoryCategoryEnum,
 } from "@/data-sources/itemInventory";
+import { CalculatePower } from "@/utils/common.util";
 import axios from "axios";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -23,78 +24,33 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-const { width, height } = Dimensions.get("window");
 
-const BASE_URL = "http://localhost:8080/api/v1";
+const { width, height } = Dimensions.get("window");
+const BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
 
 export default function MainScreen() {
   const [heroState, setHeroState] = useState(EntityStateEnum.Idle);
   const [dungeon, setDungeon] = useState(5);
 
-  const [power, setPower] = useState(100000);
+  const [power, setPower] = useState<any>(100000);
+  const [itemPower, setItemPower] = useState<any>(0);
   const [data, setData] = useState([]);
-  const [equipment, setEquipment] = useState([
-    {
-      _id: "68c5f28426251e8d0aca44e2",
-      item: {
-        _id: "68c599904a515b2c0826d087",
-        name: "Cursed_Relic",
-        category: "Weapon",
-      },
-      atk: -523,
-      def: 624,
-      hp: -22,
-      user: "68c5eb725ad6300fb2c9e018",
-      lucky: 1,
-    },
-    {
-      _id: "68c5f28426251e8d0aca44e2",
-      item: {
-        _id: "68c599904a515b2c0826d087",
-        name: "Cursed_Relic",
-        category: "Weapon",
-      },
-      atk: -523,
-      def: 624,
-      hp: -22,
-      user: "68c5eb725ad6300fb2c9e018",
-      lucky: 1,
-    },
-    {
-      _id: "68c5f28426251e8d0aca44e2",
-      item: {
-        _id: "68c599904a515b2c0826d087",
-        name: "Cursed_Relic",
-        category: "Weapon",
-      },
-      atk: -523,
-      def: 624,
-      hp: -22,
-      user: "68c5eb725ad6300fb2c9e018",
-      lucky: 1,
-    },
-    {
-      _id: "68c5f28426251e8d0aca44e2",
-      item: {
-        _id: "68c599904a515b2c0826d087",
-        name: "Cursed_Relic",
-        category: "Weapon",
-      },
-      atk: -523,
-      def: 624,
-      hp: -22,
-      user: "68c5eb725ad6300fb2c9e018",
-      lucky: 1,
-    },
-  ]);
+  const [equipment, setEquipment] = useState<any>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
 
   const [hero, setHero] = useState<EntityNameEnum>(EntityNameEnum.hero);
   const [selectedHero, setSelectedHero] = useState<number>(0);
 
   useEffect(() => {
+    getHeroPower();
     getInventory();
+    getEquipment();
   }, []);
+
+  useEffect(() => {
+    setItemPower(CalculatePower(equipment));
+  }, [equipment]);
 
   const getInventory = async () => {
     const token = localStorage.getItem("accessToken");
@@ -105,6 +61,35 @@ export default function MainScreen() {
         },
       });
       setData(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const getHeroPower = async () => {
+    const token = localStorage.getItem("accessToken");
+    try {
+      const res = await axios.get(BASE_URL + "/scores", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const { point } = res.data;
+      setPower(point ?? 0);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const getEquipment = async () => {
+    const token = localStorage.getItem("accessToken");
+    try {
+      const res = await axios.get(BASE_URL + "/equipment", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setEquipment(res.data);
     } catch (error) {
       console.error(error);
     }
@@ -131,8 +116,88 @@ export default function MainScreen() {
     });
   };
 
+  const postEquipment = async (
+    isUnequip: boolean = false,
+    newEquipment?: any
+  ) => {
+    const token = localStorage.getItem("accessToken");
+    let body = {
+      head:
+        selectedItem?.item.category === InventoryCategoryEnum.head
+          ? selectedItem._id
+          : equipment?.head?._id,
+      body:
+        selectedItem?.item.category === InventoryCategoryEnum.body
+          ? selectedItem._id
+          : equipment?.body?._id,
+      leg:
+        selectedItem?.item.category === InventoryCategoryEnum.leg
+          ? selectedItem._id
+          : equipment?.leg?._id,
+      shield:
+        selectedItem?.item.category === InventoryCategoryEnum.shield
+          ? selectedItem._id
+          : equipment?.shield?._id,
+      weapon:
+        selectedItem?.item.category === InventoryCategoryEnum.weapon
+          ? selectedItem._id
+          : equipment?.weapon?._id,
+      jewelry:
+        selectedItem?.item.category === InventoryCategoryEnum.jewelry
+          ? selectedItem._id
+          : equipment?.jewelry?._id,
+    };
+    if (isUnequip) {
+      Object.keys(newEquipment).forEach((e: any) => {
+        if (newEquipment[e]?._id) {
+          newEquipment[e] = newEquipment[e]._id;
+        }
+      });
+      body = newEquipment;
+    }
+
+    try {
+      const res = await axios.post(BASE_URL + "/equipment", body, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res && res.data) {
+        getEquipment();
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const unequip = (itemPosition: InventoryCategoryEnum) => {
+    switch (itemPosition) {
+      case InventoryCategoryEnum.body:
+        postEquipment(true, { ...equipment, body: null });
+        break;
+      case InventoryCategoryEnum.head:
+        postEquipment(true, { ...equipment, head: null });
+        break;
+      case InventoryCategoryEnum.jewelry:
+        postEquipment(true, { ...equipment, jewelry: null });
+        break;
+      case InventoryCategoryEnum.leg:
+        postEquipment(true, { ...equipment, leg: null });
+        break;
+      case InventoryCategoryEnum.shield:
+        postEquipment(true, { ...equipment, shield: null });
+        break;
+      case InventoryCategoryEnum.weapon:
+        postEquipment(true, { ...equipment, weapon: null });
+        break;
+      default:
+        break;
+    }
+  };
+
   const equip = () => {
     console.log("equip");
+    postEquipment();
   };
 
   const renderItem = ({ item, index }: any) => {
@@ -144,8 +209,7 @@ export default function MainScreen() {
               source={
                 InventoryAssets?.[
                   item.item.category as InventoryCategoryEnum
-                ]?.[item.item.name as keyof typeof InventoryAssets] ??
-                InventoryAssets["Weapon"]["Ancient"]
+                ]?.[item.item.name as keyof typeof InventoryAssets] ?? null
               }
               style={[styles.itemImg]}
             />
@@ -186,14 +250,17 @@ export default function MainScreen() {
             </Button>
           </View>
           <Text style={[styles.pixelText, { fontSize: 12 }]}>
-            Power: <Text style={[styles.pixelPowerText]}>{"??????"}</Text>
+            Power:{" "}
+            <Text style={[styles.pixelPowerText]}>
+              {power !== -1 ? power + itemPower : "??????"}
+            </Text>
           </Text>
         </View>
         <View style={styles.inventory}>
           <FlatList
             data={data}
             renderItem={renderItem}
-            keyExtractor={(item: any) => item.id}
+            keyExtractor={(item: any) => item._id}
             numColumns={5}
             contentContainerStyle={styles.list}
             scrollEnabled={true}
@@ -207,7 +274,7 @@ export default function MainScreen() {
                   InventoryAssets?.[
                     selectedItem.item.category as InventoryCategoryEnum
                   ]?.[selectedItem.item.name as keyof typeof InventoryAssets] ??
-                  InventoryAssets["Weapon"]["Ancient"]
+                  null
                 }
                 style={[styles.itemImg]}
               />
@@ -266,15 +333,94 @@ export default function MainScreen() {
             </Button>
           </View>
         )}
-        <View style={styles.inventory}>
-          {/* <FlatList
-            data={data}
-            renderItem={renderItem}
-            keyExtractor={(item: any) => item.id}
-            numColumns={5}
-            contentContainerStyle={styles.list}
-            scrollEnabled={true}
-          /> */}
+        <View style={styles.equipmentList}>
+          <TouchableOpacity
+            onPress={() => unequip(InventoryCategoryEnum.weapon)}
+          >
+            <View style={[styles.inventorySlot]}>
+              <Image
+                source={
+                  InventoryAssets?.[InventoryCategoryEnum.weapon]?.[
+                    equipment?.weapon?.item
+                      ?.name as keyof typeof InventoryAssets
+                  ] ?? null
+                }
+                style={[styles.itemImg]}
+              />
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => unequip(InventoryCategoryEnum.shield)}
+          >
+            <View style={[styles.inventorySlot]}>
+              <Image
+                source={
+                  InventoryAssets?.[InventoryCategoryEnum.shield]?.[
+                    equipment?.shield?.item
+                      ?.name as keyof typeof InventoryAssets
+                  ] ?? null
+                }
+                style={[styles.itemImg]}
+              />
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => unequip(InventoryCategoryEnum.head)}
+          >
+            <View style={[styles.inventorySlot]}>
+              <Image
+                source={
+                  InventoryAssets?.[InventoryCategoryEnum.head]?.[
+                    equipment?.head?.item?.name as keyof typeof InventoryAssets
+                  ] ?? null
+                }
+                style={[styles.itemImg]}
+              />
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => unequip(InventoryCategoryEnum.body)}
+          >
+            <View style={[styles.inventorySlot]}>
+              <Image
+                source={
+                  InventoryAssets?.[InventoryCategoryEnum.body]?.[
+                    equipment?.body?.item?.name as keyof typeof InventoryAssets
+                  ] ?? null
+                }
+                style={[styles.itemImg]}
+              />
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => unequip(InventoryCategoryEnum.leg)}
+          >
+            <View style={[styles.inventorySlot]}>
+              <Image
+                source={
+                  InventoryAssets?.[InventoryCategoryEnum.leg]?.[
+                    equipment?.leg?.item?.name as keyof typeof InventoryAssets
+                  ] ?? null
+                }
+                style={[styles.itemImg]}
+              />
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => unequip(InventoryCategoryEnum.jewelry)}
+          >
+            <View style={[styles.inventorySlot]}>
+              <Image
+                source={
+                  InventoryAssets?.[InventoryCategoryEnum.jewelry]?.[
+                    equipment?.jewelry?.item
+                      ?.name as keyof typeof InventoryAssets
+                  ] ?? null
+                }
+                style={[styles.itemImg]}
+              />
+            </View>
+          </TouchableOpacity>
         </View>
         <Button
           customStyle={[
@@ -368,7 +514,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#c46f00ff",
     borderRadius: 15,
     width: width > height ? 340 : 650,
-    top: 20,
+    top: 10,
     right: 50,
   },
   inventorySlot: {
@@ -394,10 +540,20 @@ const styles = StyleSheet.create({
     padding: 7,
     alignItems: "center",
   },
-  equipment: {},
+  equipmentList: {
+    position: "absolute",
+    backgroundColor: "#9e9e9eff",
+    borderRadius: 15,
+    gap: 12,
+    flex: 1,
+    flexDirection: "row",
+    padding: 7,
+    top: 10,
+    left: 50,
+  },
   list: {
     gap: 12,
-    maxHeight: width > height ? 220 : 650,
+    maxHeight: width > height ? 225 : 650,
     maxWidth: width > height ? 600 : 400,
     padding: 20,
   },

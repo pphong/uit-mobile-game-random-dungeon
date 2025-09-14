@@ -5,8 +5,10 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
 
+const VERSION = process.env.EXPO_PUBLIC_VERSION;
+const BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
 const { width, height } = Dimensions.get("window");
-const BASE_URL = "http://localhost:8080/api/v1";
 
 export default function LoginScreen() {
   const backgroundImage = require("@/assets/background/banner-game-3.png");
@@ -29,7 +31,7 @@ export default function LoginScreen() {
       console.error(error);
     }
     router.push("/(games)/main");
-  }; 
+  };
 
   return (
     <>
@@ -73,7 +75,9 @@ export default function LoginScreen() {
           <Text style={[styles.pixelText, { color: "#555555ff" }]}>
             Copyright © 2025 - Pham-Brotherhood
           </Text>
-          <Text style={[styles.pixelText, { color: "#555555ff" }]}>v1.2.0</Text>
+          <Text style={[styles.pixelText, { color: "#555555ff" }]}>
+            {VERSION}
+          </Text>
         </View>
       </View>
     </>

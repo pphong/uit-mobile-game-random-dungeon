@@ -3,14 +3,15 @@ import { router } from "expo-router";
 import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
 
 const { width, height } = Dimensions.get("window");
+const VERSION = process.env.EXPO_PUBLIC_VERSION;
 
 export default function HomeScreen() {
   const backgroundImage = require("@/assets/background/banner-game.jpg");
   const backgroundPortrailImage = require("@/assets/background/banner-game-2.jpg");
 
   const login = () => {
-    router.push('/(auths)/login');
-  }
+    router.push("/(auths)/login");
+  };
 
   return (
     <>
@@ -37,7 +38,9 @@ export default function HomeScreen() {
           <Text style={[styles.pixelText, { color: "#555555ff" }]}>
             Copyright © 2025 - Pham-Brotherhood
           </Text>
-          <Text style={[styles.pixelText, { color: "#555555ff" }]}>v1.2.0</Text>
+          <Text style={[styles.pixelText, { color: "#555555ff" }]}>
+            {VERSION}
+          </Text>
         </View>
       </View>
     </>

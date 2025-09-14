@@ -12,7 +12,7 @@ type CharacterProps = {
   characterFrames: any;
   currentHP?: number;
   totalHP?: number;
-  missingHP?: number;
+  missingHP?: number | "-0" | "+0";
   width?: number;
   height?: number;
   nameColor?: string;
@@ -29,7 +29,7 @@ const Character: React.FC<CharacterProps> = ({
   missingHP,
   width,
   height,
-  nameColor
+  nameColor,
 }) => {
   const [fontsLoaded] = useFonts({
     PressStart2P: require("@/assets/fonts/PressStart2P-Regular.ttf"),
@@ -78,7 +78,11 @@ const Character: React.FC<CharacterProps> = ({
       >
         {missingHP && (
           <TextPopup
-            color={missingHP < 0 ? "#c20000ff" : "#0c923bff"}
+            color={
+              (missingHP as number) < 0 || missingHP === "-0"
+                ? "#c20000ff"
+                : "#0c923bff"
+            }
             value={missingHP}
           ></TextPopup>
         )}
@@ -91,12 +95,21 @@ const Character: React.FC<CharacterProps> = ({
           },
         ]}
       >
-        <Text style={[styles.pixelText, { marginBottom: 10, color: nameColor ? nameColor : '#000' }]}>{name}</Text>
-        {currentHP && totalHP && <HudBar name={"HP"} current={currentHP} total={totalHP}></HudBar>}
+        <Text
+          style={[
+            styles.pixelText,
+            { marginBottom: 10, color: nameColor ? nameColor : "#000" },
+          ]}
+        >
+          {name}
+        </Text>
+        {currentHP && totalHP && (
+          <HudBar name={"HP"} current={currentHP} total={totalHP}></HudBar>
+        )}
         <Animated.Image
           source={characterFrames[characterState]} // GIF trong thư mục assets
           style={[
-            { width: width? width : 270, height: height? height: 200 },
+            { width: width ? width : 270, height: height ? height : 200 },
             styles.charactor,
             {
               transform: [{ scaleX }],

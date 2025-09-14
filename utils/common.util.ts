@@ -23,3 +23,33 @@ export const CalculateLv = (lvWeigth: number) => {
   }
   return 0;
 };
+
+export const CalculatePower = (equipment: any) => {
+  if (!equipment) {
+    return -1;
+  }
+  let atk = 0,
+    def = 0,
+    hp = 0,
+    luck = 0;
+  Object.keys(equipment).forEach((element: any) => {
+    atk += equipment[element]?.atk ?? 0;
+    def += equipment[element]?.def ?? 0;
+    hp += equipment[element]?.hp ?? 0;
+    luck += equipment[element]?.luck ?? 0;
+  });
+
+  return atk * 2 + def + hp + luck * atk;
+};
+
+export const CalculateItemProp = (equipment: any, prop: 'atk' | 'def' | 'hp' | 'luck') => {
+  if (!equipment) {
+    return -1;
+  }
+  let value = 0;
+  Object.keys(equipment).forEach((element: any) => {
+    value += equipment[element]?.[prop] ?? 0;
+  });
+
+  return value ?? 0;
+};

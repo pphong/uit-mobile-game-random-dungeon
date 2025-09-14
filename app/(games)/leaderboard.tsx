@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 
-const BASE_URL = "http://localhost:8080/api/v1";
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
 
 export default function LeaderboardScreen() {
   const backgroundImage = require("@/assets/background/banner-game-4.jpg");
