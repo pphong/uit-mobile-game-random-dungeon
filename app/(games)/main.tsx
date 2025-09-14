@@ -7,10 +7,25 @@ import EntityInventory, {
   EntityNameEnum,
 } from "@/data-sources/entityInventory";
 import { EntityStateEnum } from "@/data-sources/entityState";
+import {
+  InventoryAssets,
+  InventoryCategoryEnum,
+} from "@/data-sources/itemInventory";
+import axios from "axios";
 import { router } from "expo-router";
-import { useState } from "react";
-import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import {
+  Dimensions,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 const { width, height } = Dimensions.get("window");
+
+const BASE_URL = "http://localhost:8080/api/v1";
 
 export default function MainScreen() {
   const [heroState, setHeroState] = useState(EntityStateEnum.Idle);
@@ -18,9 +33,82 @@ export default function MainScreen() {
 
   const [power, setPower] = useState(100000);
   const [data, setData] = useState([]);
+  const [equipment, setEquipment] = useState([
+    {
+      _id: "68c5f28426251e8d0aca44e2",
+      item: {
+        _id: "68c599904a515b2c0826d087",
+        name: "Cursed_Relic",
+        category: "Weapon",
+      },
+      atk: -523,
+      def: 624,
+      hp: -22,
+      user: "68c5eb725ad6300fb2c9e018",
+      lucky: 1,
+    },
+    {
+      _id: "68c5f28426251e8d0aca44e2",
+      item: {
+        _id: "68c599904a515b2c0826d087",
+        name: "Cursed_Relic",
+        category: "Weapon",
+      },
+      atk: -523,
+      def: 624,
+      hp: -22,
+      user: "68c5eb725ad6300fb2c9e018",
+      lucky: 1,
+    },
+    {
+      _id: "68c5f28426251e8d0aca44e2",
+      item: {
+        _id: "68c599904a515b2c0826d087",
+        name: "Cursed_Relic",
+        category: "Weapon",
+      },
+      atk: -523,
+      def: 624,
+      hp: -22,
+      user: "68c5eb725ad6300fb2c9e018",
+      lucky: 1,
+    },
+    {
+      _id: "68c5f28426251e8d0aca44e2",
+      item: {
+        _id: "68c599904a515b2c0826d087",
+        name: "Cursed_Relic",
+        category: "Weapon",
+      },
+      atk: -523,
+      def: 624,
+      hp: -22,
+      user: "68c5eb725ad6300fb2c9e018",
+      lucky: 1,
+    },
+  ]);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
 
   const [hero, setHero] = useState<EntityNameEnum>(EntityNameEnum.hero);
   const [selectedHero, setSelectedHero] = useState<number>(0);
+
+  useEffect(() => {
+    getInventory();
+  }, []);
+
+  const getInventory = async () => {
+    const token = localStorage.getItem("accessToken");
+    try {
+      const res = await axios.get(BASE_URL + "/inventory", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setData(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const nextHero = () => {
     const states = Object.values(EntityNameEnum);
@@ -43,29 +131,26 @@ export default function MainScreen() {
     });
   };
 
+  const equip = () => {
+    console.log("equip");
+  };
+
   const renderItem = ({ item, index }: any) => {
     return (
       <>
-        <View style={styles.inventorySlot}>
-          <View
-            style={[
-              {
-                borderWidth: 3,
-                borderStyle: "dashed",
-                borderColor: "#840808ff",
-                borderRadius: 30,
-                padding: 5,
-              },
-            ]}
-          >
-            {/* <Image
-              source={rankIcons[index < 17 ? index : 17]}
-              style={[styles.rankImg]}
-            /> */}
+        <TouchableOpacity onPress={() => setSelectedItem(item)}>
+          <View style={[styles.inventorySlot]}>
+            <Image
+              source={
+                InventoryAssets?.[
+                  item.item.category as InventoryCategoryEnum
+                ]?.[item.item.name as keyof typeof InventoryAssets] ??
+                InventoryAssets["Weapon"]["Ancient"]
+              }
+              style={[styles.itemImg]}
+            />
           </View>
-          <Text style={[styles.pixelText, { flex: 1 }]}>{item.name}</Text>
-          <Text style={[styles.pixelText, { flex: 1 }]}>{item.score}</Text>
-        </View>
+        </TouchableOpacity>
       </>
     );
   };
@@ -105,6 +190,83 @@ export default function MainScreen() {
           </Text>
         </View>
         <View style={styles.inventory}>
+          <FlatList
+            data={data}
+            renderItem={renderItem}
+            keyExtractor={(item: any) => item.id}
+            numColumns={5}
+            contentContainerStyle={styles.list}
+            scrollEnabled={true}
+          />
+        </View>
+        {selectedItem && (
+          <View style={styles.itemDetailContainer}>
+            <View style={[styles.inventorySlot]}>
+              <Image
+                source={
+                  InventoryAssets?.[
+                    selectedItem.item.category as InventoryCategoryEnum
+                  ]?.[selectedItem.item.name as keyof typeof InventoryAssets] ??
+                  InventoryAssets["Weapon"]["Ancient"]
+                }
+                style={[styles.itemImg]}
+              />
+            </View>
+            <Text style={[styles.pixelText, { fontSize: 12 }]}>
+              ATK:{" "}
+              <Text
+                style={[styles.pixelText, { fontSize: 12, color: "#970000ff" }]}
+              >
+                {selectedItem.atk}
+              </Text>
+            </Text>
+            <Text style={[styles.pixelText, { fontSize: 12 }]}>
+              DEF:{" "}
+              <Text
+                style={[styles.pixelText, { fontSize: 12, color: "#474747ff" }]}
+              >
+                {selectedItem.def}
+              </Text>
+            </Text>
+            <Text style={[styles.pixelText, { fontSize: 12 }]}>
+              HP:{" "}
+              <Text
+                style={[styles.pixelText, { fontSize: 12, color: "#0023bdff" }]}
+              >
+                {selectedItem.hp}
+              </Text>
+            </Text>
+            <Text style={[styles.pixelText, { fontSize: 12 }]}>
+              LK:{" "}
+              <Text
+                style={[styles.pixelText, { fontSize: 12, color: "#38d726ff" }]}
+              >
+                {selectedItem.lucky}
+              </Text>
+            </Text>
+            <Button
+              customStyle={[
+                {
+                  flex: 1,
+                  flexDirection: "row",
+                  width: 60,
+                  backgroundColor: "#7c2fa6ff",
+                },
+              ]}
+              onPress={equip}
+            >
+              <Text
+                style={[
+                  styles.pixelText,
+                  { fontStyle: "italic", color: "#ffffffff", fontSize: 8 },
+                ]}
+              >
+                Equip
+              </Text>
+            </Button>
+          </View>
+        )}
+        <View style={styles.inventory}>
           {/* <FlatList
             data={data}
             renderItem={renderItem}
@@ -121,6 +283,8 @@ export default function MainScreen() {
               flexDirection: "row",
               width: 150,
               backgroundColor: "#a81010ff",
+              top: 150,
+              left: 70,
             },
           ]}
           onPress={play}
@@ -181,7 +345,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: 932,
     bottom: 0,
-    opacity: 0.4
+    opacity: 0.4,
   },
   backgroundPortrailImage: {
     position: "absolute",
@@ -199,13 +363,46 @@ const styles = StyleSheet.create({
     width: 35,
     minHeight: 50,
   },
-  inventory: {},
-  inventorySlot: {},
+  inventory: {
+    position: "absolute",
+    backgroundColor: "#c46f00ff",
+    borderRadius: 15,
+    width: width > height ? 340 : 650,
+    top: 20,
+    right: 50,
+  },
+  inventorySlot: {
+    borderWidth: 2,
+    borderStyle: "solid",
+    borderColor: "#472d08ff",
+    borderRadius: 3,
+    padding: 5,
+    width: 50,
+    height: 50,
+    marginLeft: 5,
+    marginRight: 5,
+  },
+  itemDetailContainer: {
+    position: "absolute",
+    backgroundColor: "#c46f00ff",
+    borderRadius: 15,
+    width: width > height ? 340 : 650,
+    top: 250,
+    right: 50,
+    flex: 1,
+    flexDirection: "row",
+    padding: 7,
+    alignItems: "center",
+  },
+  equipment: {},
   list: {
     gap: 12,
-    maxHeight: width > height ? 250 : 650,
+    maxHeight: width > height ? 220 : 650,
     maxWidth: width > height ? 600 : 400,
-    paddingLeft: 5,
-    paddingRight: 5,
+    padding: 20,
+  },
+  itemImg: {
+    width: 36,
+    height: 36,
   },
 });
