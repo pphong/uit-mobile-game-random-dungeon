@@ -30,11 +30,10 @@ import {
 const { width, height } = Dimensions.get("window");
 const BASE_URL =
   process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
-
 export default function MainScreen() {
   const [heroState, setHeroState] = useState(EntityStateEnum.Idle);
   const [dungeon, setDungeon] = useState(5);
-  const [username, setUsername] = useState(AsyncStorage.getItem("name"));
+  const [username, setUsername] = useState<string>(name ?? '');
 
   const [power, setPower] = useState<any>(100000);
   const [itemPower, setItemPower] = useState<any>(0);
@@ -50,9 +49,14 @@ export default function MainScreen() {
       getHeroPower();
       getInventory();
       getEquipment();
-      setUsername(AsyncStorage.getItem("name"));
+      nameSync();
     }, [])
   );
+
+  const nameSync = async () => {
+    const name = await AsyncStorage.getItem("name");
+    setUsername(name ?? "????");
+  }
 
   useEffect(() => {
     getHeroPower();

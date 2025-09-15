@@ -2,7 +2,6 @@ import Button from "@/components/Button";
 import Input from "@/components/Input";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
 
@@ -17,9 +16,15 @@ export default function LoginScreen() {
   const [username, setUsername] = useState<any>(
     AsyncStorage.getItem("name") ?? ""
   );
-  const setName = () => {
-    router.push("/(games)/main");
+
+  const nameSync = async () => {
+    const name = await AsyncStorage.getItem("name");
+    setUsername(name ?? "????");
   };
+
+  useEffect(() => {
+    nameSync();
+  }, []);
 
   useEffect(() => {
     AsyncStorage.setItem("name", username);
