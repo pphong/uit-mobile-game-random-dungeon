@@ -6,6 +6,11 @@ import EntityInventory, {
   EntityNameEnum,
 } from "@/data-sources/entityInventory";
 import { EntityStateEnum } from "@/data-sources/entityState";
+import { GemAssets, GemNameEnum } from "@/data-sources/itemGem";
+import {
+  InventoryAssets,
+  InventoryCategoryEnum,
+} from "@/data-sources/itemInventory";
 import { CalculateItemProp, CalculateLv } from "@/utils/common.util";
 import axios from "axios";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -47,6 +52,8 @@ export default function BattleScreen() {
   const [dungeon, setDungeon] = useState(Math.floor(Math.random() * 4));
   const [enemy, setEnemy] = useState(EntityNameEnum.hero);
 
+  const [dropItems, setDropItems] = useState<any>([]);
+
   useEffect(() => {
     const state = Object.values(EntityNameEnum);
     setEnemy(EntityNameEnum[state[Math.floor(Math.random() * state.length)]]);
@@ -84,6 +91,7 @@ export default function BattleScreen() {
   };
 
   const onVictory = async () => {
+    setDropItems([]);
     const token = localStorage.getItem("accessToken");
     const diffScore = Math.floor(
       10 - ((heroMaxHP + heroPower) * 100) / enemyMaxHP / 10
@@ -97,8 +105,7 @@ export default function BattleScreen() {
           master: diffScore,
         },
       });
-      const { point } = res.data;
-      setHeroPower(point ?? 0);
+      setDropItems(res.data);
     } catch (error) {
       console.error(error);
     }
@@ -122,6 +129,7 @@ export default function BattleScreen() {
     setResult(null);
     setQuote(Math.floor(Math.random() * 3));
     setDungeon(Math.floor(Math.random() * 3));
+    setDropItems([]);
   };
 
   const home = () => {
@@ -271,10 +279,10 @@ export default function BattleScreen() {
   }, [turn]);
 
   useEffect(() => {
-    if (enemyHP === 0) {
+    if (enemyHP === 0 && result == null) {
       setResult("win");
       onVictory();
-    } else if (heroHP === 0) {
+    } else if (heroHP === 0 && result == null) {
       setResult("lose");
     }
     console.log({ enemyHP, heroHP });
@@ -420,10 +428,10 @@ export default function BattleScreen() {
               <View
                 style={[
                   {
-                    flex: 1,
+                    // flex: 1,
                     flexDirection: "column",
                     gap: 12,
-                    top: width > height ? height / 3 : height / 2,
+                    // top: width > height ? height / 3 : height / 2,
                   },
                 ]}
               >
@@ -458,10 +466,28 @@ export default function BattleScreen() {
                     backgroundColor={"#008131ff"}
                   ></Button>
                 </View>
-                <Text style={[styles.pixelText, { fontSize: 15 }]}>
+                <Text style={[styles.pixelText, { fontSize: 15, maxWidth: width * 0.7  }]}>
                   (Your items have been sent to inventory, please check them
                   when you return.)
                 </Text>
+                <View style={styles.dropList}>
+                  {dropItems.map((item: any, index: number) => (
+                    <View key={index} style={[styles.inventorySlot]}>
+                      <Image
+                        source={
+                          item.item.category !== "Gem"
+                            ? InventoryAssets?.[
+                                item.item.category as InventoryCategoryEnum
+                              ]?.[
+                                item.item.name as keyof typeof InventoryAssets
+                              ] ?? null
+                            : GemAssets?.[item.item.name as GemNameEnum]
+                        }
+                        style={[styles.itemImg]}
+                      />
+                    </View>
+                  ))}
+                </View>
               </View>
             )}
 
@@ -651,5 +677,30 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     flex: 1,
     flexDirection: "row",
+  },
+  dropList: {
+    backgroundColor: "#d4c354ff",
+    borderRadius: 15,
+    gap: 12,
+    flex: 1,
+    flexDirection: "row",
+    padding: 7,
+    maxHeight: 66,
+    minHeight: 66
+  },
+  inventorySlot: {
+    borderWidth: 2,
+    borderStyle: "solid",
+    borderColor: "#472d08ff",
+    borderRadius: 3,
+    padding: 5,
+    width: 50,
+    height: 50,
+    marginLeft: 5,
+    marginRight: 5,
+  },
+  itemImg: {
+    width: 36,
+    height: 36,
   },
 });

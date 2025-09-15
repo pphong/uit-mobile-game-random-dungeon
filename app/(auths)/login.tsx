@@ -25,8 +25,9 @@ export default function LoginScreen() {
       });
       const userData = res.data;
       localStorage.setItem("userData", JSON.stringify(userData));
-      const { token } = res.data;
+      const { token, user } = res.data;
       localStorage.setItem("accessToken", token);
+      localStorage.setItem("name", user?.name );
     } catch (error) {
       console.error(error);
     }

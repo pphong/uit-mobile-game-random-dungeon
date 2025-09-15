@@ -41,6 +41,24 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="build"
+        options={{
+          title: "Mosaic",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="s.square.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="disassemble"
+        options={{
+          title: "Disassemble",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="s.square.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="battle"
         options={{
           title: "Battle",

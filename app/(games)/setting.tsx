@@ -1,18 +1,47 @@
 import Button from "@/components/Button";
 import Input from "@/components/Input";
+import axios from "axios";
 import { router } from "expo-router";
+import { useEffect, useState } from "react";
 import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
+const BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
 
 const { width, height } = Dimensions.get("window");
 
 export default function LoginScreen() {
   const backgroundImage = require("@/assets/background/banner-game-3.png");
   const backgroundPortrailImage = require("@/assets/background/banner-game-3.png");
-
+  const [username, setUsername] = useState<any>(
+    localStorage.getItem("name") ?? ""
+  );
   const setName = () => {
-    router.push('/(games)/main');
+    router.push("/(games)/main");
+  };
+
+  useEffect(() => {
+    localStorage.setItem("name", username);
+  }, [username]);
+
+  const postSetName = async () => {
+    const token = localStorage.getItem("accessToken");
+    try {
+      const res = await axios.post(
+        BASE_URL + "/users/profile",
+        {
+          name: username,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setUsername(res.data.name);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -33,6 +62,8 @@ export default function LoginScreen() {
             customStyle={styles.inputCustom}
             inputAccessoryViewID="name"
             placeHolder="Name"
+            value={username}
+            setText={setUsername}
           ></Input>
           <Button
             customStyle={[
@@ -40,7 +71,7 @@ export default function LoginScreen() {
             ]}
             buttonTextStyle={[{ fontSize: 20, color: "#7e0000ff" }]}
             label="This is my name for now!"
-            onPress={setName}
+            onPress={postSetName}
           ></Button>
         </View>
         <View style={[styles.footer]}>

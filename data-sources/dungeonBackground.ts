@@ -7,6 +7,7 @@ const dungeonBackground: ImageSourcePropType[] = [
   require("@/assets/background/dungeon/dungeon_4.jpg"),
   require("@/assets/background/dungeon/dungeon_5.jpg"),
   require("@/assets/background/dungeon/dungeon_6.jpg"),
+  require("@/assets/background/dungeon/dungeon_7.jpg"),
 ];
 
 export default dungeonBackground;

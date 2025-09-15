@@ -7,14 +7,15 @@ import EntityInventory, {
   EntityNameEnum,
 } from "@/data-sources/entityInventory";
 import { EntityStateEnum } from "@/data-sources/entityState";
+import { GemAssets, GemNameEnum } from "@/data-sources/itemGem";
 import {
   InventoryAssets,
   InventoryCategoryEnum,
 } from "@/data-sources/itemInventory";
 import { CalculatePower } from "@/utils/common.util";
 import axios from "axios";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -32,6 +33,7 @@ const BASE_URL =
 export default function MainScreen() {
   const [heroState, setHeroState] = useState(EntityStateEnum.Idle);
   const [dungeon, setDungeon] = useState(5);
+  const [username, setUsername] = useState(localStorage.getItem("name"));
 
   const [power, setPower] = useState<any>(100000);
   const [itemPower, setItemPower] = useState<any>(0);
@@ -41,6 +43,15 @@ export default function MainScreen() {
 
   const [hero, setHero] = useState<EntityNameEnum>(EntityNameEnum.hero);
   const [selectedHero, setSelectedHero] = useState<number>(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      getHeroPower();
+      getInventory();
+      getEquipment();
+      setUsername(localStorage.getItem("name"));
+    }, [])
+  );
 
   useEffect(() => {
     getHeroPower();
@@ -207,9 +218,11 @@ export default function MainScreen() {
           <View style={[styles.inventorySlot]}>
             <Image
               source={
-                InventoryAssets?.[
-                  item.item.category as InventoryCategoryEnum
-                ]?.[item.item.name as keyof typeof InventoryAssets] ?? null
+                item.item.category !== "Gem"
+                  ? InventoryAssets?.[
+                      item.item.category as InventoryCategoryEnum
+                    ]?.[item.item.name as keyof typeof InventoryAssets] ?? null
+                  : GemAssets?.[item.item.name as GemNameEnum]
               }
               style={[styles.itemImg]}
             />
@@ -255,6 +268,11 @@ export default function MainScreen() {
               {power !== -1 ? power + itemPower : "??????"}
             </Text>
           </Text>
+          <Text
+            style={[styles.pixelText, { fontSize: 26, color: "#cececeff" }]}
+          >
+            {username}
+          </Text>
         </View>
         <View style={styles.inventory}>
           <FlatList
@@ -271,38 +289,70 @@ export default function MainScreen() {
             <View style={[styles.inventorySlot]}>
               <Image
                 source={
-                  InventoryAssets?.[
-                    selectedItem.item.category as InventoryCategoryEnum
-                  ]?.[selectedItem.item.name as keyof typeof InventoryAssets] ??
-                  null
+                  selectedItem.item.category !== "Gem"
+                    ? InventoryAssets?.[
+                        selectedItem.item.category as InventoryCategoryEnum
+                      ]?.[
+                        selectedItem.item.name as keyof typeof InventoryAssets
+                      ] ?? null
+                    : GemAssets?.[selectedItem.item.name as GemNameEnum]
                 }
                 style={[styles.itemImg]}
               />
             </View>
-            <Text style={[styles.pixelText, { fontSize: 12 }]}>
-              ATK:{" "}
-              <Text
-                style={[styles.pixelText, { fontSize: 12, color: "#970000ff" }]}
-              >
-                {selectedItem.atk}
-              </Text>
-            </Text>
-            <Text style={[styles.pixelText, { fontSize: 12 }]}>
-              DEF:{" "}
-              <Text
-                style={[styles.pixelText, { fontSize: 12, color: "#474747ff" }]}
-              >
-                {selectedItem.def}
-              </Text>
-            </Text>
-            <Text style={[styles.pixelText, { fontSize: 12 }]}>
-              HP:{" "}
-              <Text
-                style={[styles.pixelText, { fontSize: 12, color: "#0023bdff" }]}
-              >
-                {selectedItem.hp}
-              </Text>
-            </Text>
+            {selectedItem.item.category !== "Gem" && (
+              <>
+                <Text style={[styles.pixelText, { fontSize: 12 }]}>
+                  ATK:{" "}
+                  <Text
+                    style={[
+                      styles.pixelText,
+                      { fontSize: 12, color: "#970000ff" },
+                    ]}
+                  >
+                    {selectedItem.atk}
+                  </Text>
+                </Text>
+                <Text style={[styles.pixelText, { fontSize: 12 }]}>
+                  DEF:{" "}
+                  <Text
+                    style={[
+                      styles.pixelText,
+                      { fontSize: 12, color: "#474747ff" },
+                    ]}
+                  >
+                    {selectedItem.def}
+                  </Text>
+                </Text>
+                <Text style={[styles.pixelText, { fontSize: 12 }]}>
+                  HP:{" "}
+                  <Text
+                    style={[
+                      styles.pixelText,
+                      { fontSize: 12, color: "#0023bdff" },
+                    ]}
+                  >
+                    {selectedItem.hp}
+                  </Text>
+                </Text>
+              </>
+            )}
+            {selectedItem.item.category === "Gem" && (
+              <>
+                <Text style={[styles.pixelText, { fontSize: 12 }]}>
+                  Rare:{" "}
+                  <Text
+                    style={[
+                      styles.pixelText,
+                      { fontSize: 12, color: "#7200afff" },
+                    ]}
+                  >
+                    {(selectedItem.levelType ?? 0) +
+                      (selectedItem.levelColor ?? 0)}
+                  </Text>
+                </Text>
+              </>
+            )}
             <Text style={[styles.pixelText, { fontSize: 12 }]}>
               LK:{" "}
               <Text
@@ -311,26 +361,28 @@ export default function MainScreen() {
                 {selectedItem.lucky}
               </Text>
             </Text>
-            <Button
-              customStyle={[
-                {
-                  flex: 1,
-                  flexDirection: "row",
-                  width: 60,
-                  backgroundColor: "#7c2fa6ff",
-                },
-              ]}
-              onPress={equip}
-            >
-              <Text
-                style={[
-                  styles.pixelText,
-                  { fontStyle: "italic", color: "#ffffffff", fontSize: 8 },
+            {selectedItem.item.category !== "Gem" && (
+              <Button
+                customStyle={[
+                  {
+                    flex: 1,
+                    flexDirection: "row",
+                    width: 60,
+                    backgroundColor: "#7c2fa6ff",
+                  },
                 ]}
+                onPress={equip}
               >
-                Equip
-              </Text>
-            </Button>
+                <Text
+                  style={[
+                    styles.pixelText,
+                    { fontStyle: "italic", color: "#ffffffff", fontSize: 8 },
+                  ]}
+                >
+                  Equip
+                </Text>
+              </Button>
+            )}
           </View>
         )}
         <View style={styles.equipmentList}>
@@ -364,9 +416,7 @@ export default function MainScreen() {
               />
             </View>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => unequip(InventoryCategoryEnum.head)}
-          >
+          <TouchableOpacity onPress={() => unequip(InventoryCategoryEnum.head)}>
             <View style={[styles.inventorySlot]}>
               <Image
                 source={
@@ -378,9 +428,7 @@ export default function MainScreen() {
               />
             </View>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => unequip(InventoryCategoryEnum.body)}
-          >
+          <TouchableOpacity onPress={() => unequip(InventoryCategoryEnum.body)}>
             <View style={[styles.inventorySlot]}>
               <Image
                 source={
@@ -392,9 +440,7 @@ export default function MainScreen() {
               />
             </View>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => unequip(InventoryCategoryEnum.leg)}
-          >
+          <TouchableOpacity onPress={() => unequip(InventoryCategoryEnum.leg)}>
             <View style={[styles.inventorySlot]}>
               <Image
                 source={
@@ -431,6 +477,7 @@ export default function MainScreen() {
               backgroundColor: "#a81010ff",
               top: 150,
               left: 70,
+              position: "absolute",
             },
           ]}
           onPress={play}
