@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     padding: 3,
     minHeight: 20,
     minWidth: 20,
-    borderRadius: "6px",
+    borderRadius: 6,
     backgroundColor: "#C4E1E6",
     flex: 1,
     justifyContent: "center",

@@ -6,6 +6,7 @@ import {
   InventoryAssets,
   InventoryCategoryEnum,
 } from "@/data-sources/itemInventory";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { useEffect, useState } from "react";
 import {
@@ -25,7 +26,7 @@ const BASE_URL =
 export default function MainScreen() {
   const [heroState, setHeroState] = useState(EntityStateEnum.Idle);
   const [dungeon, setDungeon] = useState(6);
-  const [username, setUsername] = useState(localStorage.getItem("name"));
+  const [username, setUsername] = useState(AsyncStorage.getItem("name"));
 
   const [power, setPower] = useState<any>(100000);
   const [heroItems, setHeroItems] = useState([]);
@@ -39,7 +40,7 @@ export default function MainScreen() {
   }, []);
 
   const getInventoryItems = async () => {
-    const token = localStorage.getItem("accessToken");
+    const token = await AsyncStorage.getItem("accessToken");
     try {
       const res = await axios.get(BASE_URL + "/inventory/not-gem", {
         headers: {
@@ -53,7 +54,7 @@ export default function MainScreen() {
   };
 
   const getInventoryGems = async () => {
-    const token = localStorage.getItem("accessToken");
+    const token = await AsyncStorage.getItem("accessToken");
     try {
       const res = await axios.get(BASE_URL + "/inventory/gem", {
         headers: {
@@ -71,7 +72,7 @@ export default function MainScreen() {
       return;
     }
 
-    const token = localStorage.getItem("accessToken");
+    const token = await AsyncStorage.getItem("accessToken");
     let body = {
       gemId: selectedGem._id,
     };

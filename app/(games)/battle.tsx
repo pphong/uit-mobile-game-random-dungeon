@@ -12,6 +12,7 @@ import {
   InventoryCategoryEnum,
 } from "@/data-sources/itemInventory";
 import { CalculateItemProp, CalculateLv } from "@/utils/common.util";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -76,7 +77,7 @@ export default function BattleScreen() {
   }, [equipmentPower]);
 
   const getHeroPower = async () => {
-    const token = localStorage.getItem("accessToken");
+    const token = await AsyncStorage.getItem("accessToken");
     try {
       const res = await axios.get(BASE_URL + "/scores", {
         headers: {
@@ -92,7 +93,7 @@ export default function BattleScreen() {
 
   const onVictory = async () => {
     setDropItems([]);
-    const token = localStorage.getItem("accessToken");
+    const token = await AsyncStorage.getItem("accessToken");
     const diffScore = Math.floor(
       10 - ((heroMaxHP + heroPower) * 100) / enemyMaxHP / 10
     );
@@ -137,7 +138,7 @@ export default function BattleScreen() {
   };
 
   const getEquipment = async () => {
-    const token = localStorage.getItem("accessToken");
+    const token = await AsyncStorage.getItem("accessToken");
     try {
       const res = await axios.get(BASE_URL + "/equipment", {
         headers: {

@@ -1,4 +1,5 @@
 import rankIcons from "@/data-sources/rankIcons";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { useEffect, useState } from "react";
 import {
@@ -18,7 +19,7 @@ export default function LeaderboardScreen() {
   const [data, setData] = useState([]);
 
   const getLeaders = async () => {
-    const token = localStorage.getItem("accessToken");
+    const token = await AsyncStorage.getItem("accessToken");
     try {
       const res = await axios.get(BASE_URL + "/scores/rank", {
         headers: {

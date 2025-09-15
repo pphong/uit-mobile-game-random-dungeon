@@ -5,6 +5,7 @@ import {
   InventoryAssets,
   InventoryCategoryEnum,
 } from "@/data-sources/itemInventory";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { useEffect, useState } from "react";
 import {
@@ -32,7 +33,7 @@ export default function MainScreen() {
   }, []);
 
   const getInventoryItems = async () => {
-    const token = localStorage.getItem("accessToken");
+    const token = await AsyncStorage.getItem("accessToken");
     try {
       const res = await axios.get(BASE_URL + "/inventory/not-gem", {
         headers: {
@@ -50,7 +51,7 @@ export default function MainScreen() {
       return;
     }
 
-    const token = localStorage.getItem("accessToken");
+    const token = await AsyncStorage.getItem("accessToken");
 
     try {
       const res = await axios.post(

@@ -1,5 +1,6 @@
 import Button from "@/components/Button";
 import Input from "@/components/Input";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -14,18 +15,18 @@ export default function LoginScreen() {
   const backgroundImage = require("@/assets/background/banner-game-3.png");
   const backgroundPortrailImage = require("@/assets/background/banner-game-3.png");
   const [username, setUsername] = useState<any>(
-    localStorage.getItem("name") ?? ""
+    AsyncStorage.getItem("name") ?? ""
   );
   const setName = () => {
     router.push("/(games)/main");
   };
 
   useEffect(() => {
-    localStorage.setItem("name", username);
+    AsyncStorage.setItem("name", username);
   }, [username]);
 
   const postSetName = async () => {
-    const token = localStorage.getItem("accessToken");
+    const token = await AsyncStorage.getItem("accessToken");
     try {
       const res = await axios.post(
         BASE_URL + "/users/profile",

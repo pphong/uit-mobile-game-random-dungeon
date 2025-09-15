@@ -1,5 +1,6 @@
 import Button from "@/components/Button";
 import Input from "@/components/Input";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -24,10 +25,10 @@ export default function LoginScreen() {
         password: pwd,
       });
       const userData = res.data;
-      localStorage.setItem("userData", JSON.stringify(userData));
+      await AsyncStorage.setItem("userData", JSON.stringify(userData));
       const { token, user } = res.data;
-      localStorage.setItem("accessToken", token);
-      localStorage.setItem("name", user?.name );
+      await AsyncStorage.setItem("accessToken", token);
+      await AsyncStorage.setItem("name", user?.name );
     } catch (error) {
       console.error(error);
     }

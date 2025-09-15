@@ -13,6 +13,7 @@ import {
   InventoryCategoryEnum,
 } from "@/data-sources/itemInventory";
 import { CalculatePower } from "@/utils/common.util";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -33,7 +34,7 @@ const BASE_URL =
 export default function MainScreen() {
   const [heroState, setHeroState] = useState(EntityStateEnum.Idle);
   const [dungeon, setDungeon] = useState(5);
-  const [username, setUsername] = useState(localStorage.getItem("name"));
+  const [username, setUsername] = useState(AsyncStorage.getItem("name"));
 
   const [power, setPower] = useState<any>(100000);
   const [itemPower, setItemPower] = useState<any>(0);
@@ -49,7 +50,7 @@ export default function MainScreen() {
       getHeroPower();
       getInventory();
       getEquipment();
-      setUsername(localStorage.getItem("name"));
+      setUsername(AsyncStorage.getItem("name"));
     }, [])
   );
 
@@ -64,7 +65,7 @@ export default function MainScreen() {
   }, [equipment]);
 
   const getInventory = async () => {
-    const token = localStorage.getItem("accessToken");
+    const token = await AsyncStorage.getItem("accessToken");
     try {
       const res = await axios.get(BASE_URL + "/inventory", {
         headers: {
@@ -78,7 +79,7 @@ export default function MainScreen() {
   };
 
   const getHeroPower = async () => {
-    const token = localStorage.getItem("accessToken");
+    const token = await AsyncStorage.getItem("accessToken");
     try {
       const res = await axios.get(BASE_URL + "/scores", {
         headers: {
@@ -93,7 +94,7 @@ export default function MainScreen() {
   };
 
   const getEquipment = async () => {
-    const token = localStorage.getItem("accessToken");
+    const token = await AsyncStorage.getItem("accessToken");
     try {
       const res = await axios.get(BASE_URL + "/equipment", {
         headers: {
@@ -131,7 +132,7 @@ export default function MainScreen() {
     isUnequip: boolean = false,
     newEquipment?: any
   ) => {
-    const token = localStorage.getItem("accessToken");
+    const token = await AsyncStorage.getItem("accessToken");
     let body = {
       head:
         selectedItem?.item.category === InventoryCategoryEnum.head
